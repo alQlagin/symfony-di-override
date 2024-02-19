@@ -21,3 +21,35 @@ services:
       - '../src/DependencyInjection/'
       - '../src/Entity/'
       - '../src/Kernel.php'
+
+  # basic http client definition
+  App\Services\Http\HttpClientInterface: '@App\Services\Http\MyHttpClient'
+  App\Services\Http\MyHttpClient:
+    public: true
+    abstract: true
+
+  # internal client definition and usage
+  internal.client:
+    class: App\Services\Http\MyHttpClient
+    arguments:
+      $baseUrl: '%internal_base_url%'
+    public: false
+    tags:
+      - name: app.http_client
+        alias: internal
+  App\Services\InternalDataSourceConnector:
+    arguments:
+      $client: '@internal.client'
+
+  # external client definition and usage
+  external.client:
+    class: App\Services\Http\MyHttpClient
+    arguments:
+      $baseUrl: '%external_base_url%'
+    public: false
+    tags:
+      - name: app.http_client
+        alias: external
+  App\Services\ExternalDataSourceConnector:
+    arguments:
+      $client: '@external.client'
